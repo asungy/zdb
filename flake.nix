@@ -14,17 +14,26 @@
   outputs = inputs: with inputs;
     flake-utils.lib.eachDefaultSystem (system:
       let
-        overlays = [
-          (final: prev: { zigpkgs = zig.packages.${prev.system}; })
-        ];
-        pkgs = import nixpkgs { inherit system overlays; };
+        pkgs = import nixpkgs { inherit system; };
       in
       {
-        devShells.default = pkgs.mkShell {
-          buildInputs = with pkgs; [
-            zigpkgs."0.14.0"
-            gdb
-          ];
+        devShell = pkgs.callPackage ./nix/devShell.nix {
+          zig = zig.packages.${system}."0.14.0";
+        };
+
+        packages =
+        let
+          mkArgs = optimize: {
+            inherit optimize;
+          };
+        in rec
+        {
+          zdb-debug = pkgs.callPackage ./nix/packages.nix (mkArgs "Debug");
+          zdb-releasesafe = pkgs.callPackage ./nix/packages.nix (mkArgs "ReleaseSafe");
+          zdb-releasefast = pkgs.callPackage ./nix/packages.nix (mkArgs "ReleaseFast");
+
+          zdb = zdb-releasefast;
+          default = zdb;
         };
       }
     );

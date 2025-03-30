@@ -4,6 +4,7 @@
   nixd,
   zig,
   zls,
+  zon2nix,
 }:
 mkShell {
   name = "zdb";
@@ -12,5 +13,6 @@ mkShell {
     gdb
     zls
     nixd
+    zon2nix
   ];
 }

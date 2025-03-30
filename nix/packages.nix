@@ -3,6 +3,7 @@
   optimize,
   stdenv,
   zig,
+  pkgs,
 }:
 stdenv.mkDerivation (finalAttrs: {
   pname = "zdb";
@@ -30,6 +31,7 @@ stdenv.mkDerivation (finalAttrs: {
 
   buildPhase = ''
     NO_COLOR=1
-    zig build install --global-cache-dir $(pwd)/.cache -Doptimize=${optimize} --prefix $out
+    PACKAGE_DIR=${pkgs.callPackage ../build.zig.zon.nix {}}
+    zig build install --global-cache-dir $(pwd)/.cache --system $PACKAGE_DIR -Doptimize=${optimize} --prefix $out
   '';
 })

@@ -11,20 +11,21 @@
     };
   };
 
-  outputs = inputs: with inputs;
-    flake-utils.lib.eachDefaultSystem (system:
+  outputs = inputs:
+    inputs.flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = import nixpkgs { inherit system; };
+        pkgs = import inputs.nixpkgs { inherit system; };
+        zig = inputs.zig.packages.${system}."0.14.0";
       in
       {
         devShell = pkgs.callPackage ./nix/devShell.nix {
-          zig = zig.packages.${system}."0.14.0";
+          inherit zig;
         };
 
         packages =
         let
           mkArgs = optimize: {
-            inherit optimize;
+            inherit optimize zig;
           };
         in rec
         {

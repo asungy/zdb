@@ -2,12 +2,8 @@
   lib,
   optimize,
   stdenv,
-  zig_0_14,
-}: let
-  zig_hook = zig_0_14.overrideAttrs {
-    zig_default_flags = "-Doptimize=${optimize}";
-  };
-in
+  zig,
+}:
 stdenv.mkDerivation (finalAttrs: {
   pname = "zdb";
   version = "0.0.0";
@@ -24,11 +20,20 @@ stdenv.mkDerivation (finalAttrs: {
     );
   };
 
-  nativeBuildInputs = [
-    zig_hook
-  ];
+  nativeBuildInputs = [ zig ];
+
+  dontConfigure = true;
+  dontInstall = true;
+
+  # TODO: Implement check phase.
+  # doCheck = true;
 
   zigBuildFlags = [
     "-Dversion-string=${finalAttrs.version}-nix"
   ];
+
+  buildPhase = ''
+    NO_COLOR=1
+    zig build install --global-cache-dir $(pwd)/.cache -Doptimize=${optimize} --prefix $out
+  '';
 })

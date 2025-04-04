@@ -54,8 +54,7 @@ fn attach(processed_args: ProcessedArgsTagged, allocator: std.mem.Allocator) !us
                 @memcpy(c_str[0..program_name.len], program_name);
                 c_str[program_name.len] = 0;
 
-                // TODO: figure out how to pass null arguments. Just do same as c_str but immediately null terminate the array.
-                switch (posix.execveZ(@ptrCast(c_str), @ptrCast(c_str), @ptrCast(c_str))) {
+                switch (posix.execveZ(@ptrCast(c_str), &.{null}, &.{null})) {
                     else => |err| std.debug.print("execveZ failed: {}\n", .{err}),
                 }
             }
@@ -71,6 +70,11 @@ pub fn main() !void {
 
     const args = try parse_args(gpa.allocator());
     const pid = try attach(args, gpa.allocator());
-    // TODO destructure error
-    _ = posix.waitpid(@intCast(pid), 0);
+    const wait_pid_result = posix.waitpid(@intCast(pid), 0);
+    // TODO: I'm not sure this is the proper way to check the status.
+    if (linux.W.EXITSTATUS(wait_pid_result.status) == 0) {
+        std.debug.print("process exited normally", .{});
+    } else {
+        std.debug.print("process did not exit normally", .{});
+    }
 }

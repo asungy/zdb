@@ -70,11 +70,14 @@ pub fn main() !void {
 
     const args = try parse_args(gpa.allocator());
     const pid = try attach(args, gpa.allocator());
-    const wait_pid_result = posix.waitpid(@intCast(pid), 0);
-    // TODO: I'm not sure this is the proper way to check the status.
-    if (linux.W.EXITSTATUS(wait_pid_result.status) == 0) {
-        std.debug.print("process exited normally", .{});
+    const waitpid_result = posix.waitpid(@intCast(pid), 0);
+
+    if (linux.W.IFSTOPPED(waitpid_result.status)) {
+        std.debug.print("process was stopped\n", .{});
     } else {
-        std.debug.print("process did not exit normally", .{});
+        std.debug.print("something else happened to the process\n", .{});
     }
+
+    std.debug.print("Killing process: {}\n", .{pid});
+    try posix.kill(@intCast(pid), linux.SIG.KILL);
 }

@@ -54,7 +54,7 @@ fn attach(processed_args: ProcessedArgsTagged, allocator: std.mem.Allocator) !us
                 @memcpy(c_str[0..program_name.len], program_name);
                 c_str[program_name.len] = 0;
 
-                switch (posix.execveZ(@ptrCast(c_str), &.{null}, &.{null})) {
+                switch (posix.execvpeZ(@ptrCast(c_str), &.{null}, &.{null})) {
                     else => |err| std.debug.print("execveZ failed: {}\n", .{err}),
                 }
             }
@@ -64,7 +64,7 @@ fn attach(processed_args: ProcessedArgsTagged, allocator: std.mem.Allocator) !us
     return pid.?;
 }
 
-pub fn main() !void {
+pub fn main1() !void {
     var gpa = std.heap.GeneralPurposeAllocator(.{}){};
     defer _ = gpa.deinit();
 
@@ -81,3 +81,19 @@ pub fn main() !void {
     std.debug.print("Killing process: {}\n", .{pid});
     try posix.kill(@intCast(pid), linux.SIG.KILL);
 }
+
+const Level = enum {
+    Trace,
+    Debug,
+    Info,
+    Warn,
+    Error,
+    Fatal,
+};
+
+const Logger = struct {
+    filename: []const u8,
+    level: Level,
+};
+
+pub fn main() void {}
